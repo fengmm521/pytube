@@ -30,13 +30,14 @@ def get(
             conRange = 'bytes=%d-'%(nfize)
             print conRange
             req.add_header('Range', conRange)
-        try:
-            response = urlopen(req)
-            print '断点续传'
-        except Exception as e:
-            print e
-            print '已超时'
-            print response
+
+        while True:
+            try:
+                response = urlopen(req)
+                break
+            except Exception as e:
+                print '网络连接超时...5秒后重试'
+                time.sleep(5)
     else:
         while True:
             try:
@@ -44,7 +45,7 @@ def get(
                 break
             except Exception as e:
                 print '网络连接超时...5秒后重试'
-                time.sleep(3)
+                time.sleep(5)
             
     if streaming:
         return stream_response(response, chunk_size)

@@ -18,6 +18,8 @@ from pytube import request
 from pytube.helpers import safe_filename
 from pytube.itags import get_format_profile
 
+import time
+
 
 logger = logging.getLogger(__name__)
 
@@ -202,13 +204,34 @@ class Stream(object):
             self.filesize, fp,
         )
 
+        tmpRangefp = None
+        isTimeOut = False
         with open(fp, 'wb') as fh:
-            for chunk in request.get(self.url, streaming=True):
-                # reduce the (bytes) remainder by the length of the chunk.
-                bytes_remaining -= len(chunk)
-                # send to the on_progress callback.
-                self.on_progress(chunk, fh, bytes_remaining)
-            self.on_complete(fh)
+            while True:
+                for chunk in request.get(self.url, streaming=True,conRangefp = tmpRangefp):
+
+                    if not chunk:
+                        print 'streams time out sleep 10s'
+                        fh.flush()
+                        time.sleep(10)
+                        nfize = os.path.getsize(fp)
+                        print fp,nfize
+                        if nfize < self.filesize:
+                            tmpRangefp = fp
+                            isTimeOut = True
+                            break 
+                    else:
+                        tmpRangefp = None
+                    # reduce the (bytes) remainder by the length of the chunk.
+                    bytes_remaining -= len(chunk)
+                    # send to the on_progress callback.
+                    self.on_progress(chunk, fh, bytes_remaining)
+                if isTimeOut:
+                    isTimeOut = False
+                    print tmpRangefp
+                else:
+                    self.on_complete(fh)
+                    break
 
     def on_progress(self, chunk, file_handler, bytes_remaining):
         """On progress callback function.

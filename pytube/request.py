@@ -36,7 +36,7 @@ def get(
                 response = urlopen(req)
                 break
             except Exception as e:
-                print '网络连接超时...5秒后重试'
+                print 'time out ...5s after retry...'
                 time.sleep(5)
     else:
         while True:
@@ -44,7 +44,7 @@ def get(
                 response = urlopen(url)
                 break
             except Exception as e:
-                print '网络连接超时...5秒后重试'
+                print 'time out ...5s after retry...'
                 time.sleep(5)
             
     if streaming:
